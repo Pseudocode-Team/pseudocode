@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <vector>
 #include <iostream>
 
 #define ADD 		'+'
@@ -9,44 +10,59 @@
 //TODO: Dynamic typing, for now every value is int
 #define PseudoValue int // To enable dynamic typing we need to use one type for every value
 
-struct ASTNode {
-	PseudoValue value;
-	void (*resolver)(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* right);
-	ASTNode* left;
-	ASTNode* right;
-	void resolve(PseudoValue* acc) {
-		resolver(acc, this, left, right);
+#define Program std::vector<ASTNode>
+
+struct Runtime {
+	PseudoValue acc;
+	void error(char* err) {
+		std::cerr << "Unexpected error has occured:\n" << err << std::endl;
 	}
 };
 
-void constIntResolver(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* right) {
-	*acc = self->value;
+
+struct ASTNode {
+	PseudoValue value;
+	void (*resolver)(Runtime* r, ASTNode* self);
+	ASTNode* left;
+	ASTNode* right;
+	void resolve(Runtime* r) {
+		resolver(r, this);
+	}
+};
+
+void constIntResolver(Runtime* r, ASTNode* self) {
+	r->acc = self->value;
 }
 
 ASTNode* createConstInt(PseudoValue value) {
 	return new ASTNode{value, &constIntResolver, nullptr, nullptr};
 }
 
-void sumIntResolver(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* right) {
-	left->resolve(acc);
-	PseudoValue leftValue = *acc;
-	right->resolve(acc);
-	PseudoValue rightValue = *acc;
-	*acc = leftValue + rightValue;
+void sumIntResolver(Runtime* r, ASTNode* self) {
+	self->left->resolve(r);
+	PseudoValue leftValue = r->acc;
+	self->right->resolve(r);
+	PseudoValue rightValue = r->acc;
+	r->acc = leftValue + rightValue;
 }
 
 ASTNode* createSum(ASTNode* a, ASTNode* b) {
 	return new ASTNode{(PseudoValue)NULL, &sumIntResolver, a, b};
 }
 
-
 int main() {
-	PseudoValue Accumulator;
-	ASTNode* program = createSum(
+	Runtime R;
+	Program program = {
+		*(createSum(
 			createSum(createConstInt(1), createConstInt(15)),
 			createConstInt(2)
-		);
-	program->resolve(&Accumulator);
-	std::cout << Accumulator;
+		)),
+		*(createConstInt(69)),
+
+	};
+	for (auto instruction : program) {
+		instruction.resolve(&R);
+		std::cout << R.acc << std::endl;
+	}
 	return 0;
 }
