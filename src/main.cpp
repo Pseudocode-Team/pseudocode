@@ -6,39 +6,42 @@
 #define MULTIPLY	'*'
 #define DIVIDE		'/'
 
+//TODO: Dynamic typing, for now every value is int
+#typedef int PseudoValue // To enable dynamic typing we need to use one type for every value
+
 struct ASTNode {
-	int value; //TODO: Dynamic typing, for now every value is int
-	void (*resolver)(int* acc, ASTNode* self, ASTNode* left, ASTNode* right);
+	PseudoValue value;
+	void (*resolver)(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* right);
 	ASTNode* left;
 	ASTNode* right;
-	void resolve(int* acc) {
+	void resolve(PseudoValue* acc) {
 		resolver(acc, this, left, right);
 	}
 };
 
-void constIntResolver(int* acc, ASTNode* self, ASTNode* left, ASTNode* right) {
+void constIntResolver(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* right) {
 	*acc = self->value;
 }
 
-ASTNode* createConstInt(int value) {
+ASTNode* createConstInt(PseudoValue value) {
 	return new ASTNode{value, &constIntResolver, nullptr, nullptr};
 }
 
-void sumIntResolver(int* acc, ASTNode* self, ASTNode* left, ASTNode* right) {
+void sumIntResolver(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* right) {
 	left->resolve(acc);
-	int leftValue = *acc;
+	PseudoValue leftValue = *acc;
 	right->resolve(acc);
-	int rightValue = *acc;
+	PseudoValue rightValue = *acc;
 	*acc = leftValue + rightValue;
 }
 
-ASTNode* createSum(int a, int b) {
-	return new ASTNode{(int)NULL, &sumIntResolver, createConstInt(a), createConstInt(b)};
+ASTNode* createSum(PseudoValue a, PseudoValue b) {
+	return new ASTNode{(PseudoValue)NULL, &sumIntResolver, createConstInt(a), createConstInt(b)};
 }
 
 
 int main() {
-	int Accumulator;
+	PseudoValue Accumulator;
 	ASTNode* program = createSum(1, 2);
 	program->resolve(&Accumulator);
 	std::cout << Accumulator;
