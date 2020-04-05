@@ -10,7 +10,7 @@
 //TODO: Dynamic typing, for now every value is int
 #define PseudoValue int // To enable dynamic typing we need to use one type for every value
 
-#define Program std::vector<ASTNode>
+#define Program std::vector<ASTNode*>
 
 struct Runtime {
 	PseudoValue acc;
@@ -53,15 +53,15 @@ ASTNode* createSum(ASTNode* a, ASTNode* b) {
 int main() {
 	Runtime R;
 	Program program = {
-		*(createSum(
+		createSum(
 			createSum(createConstInt(1), createConstInt(15)),
 			createConstInt(2)
-		)),
-		*(createConstInt(69)),
+		),
+		createConstInt(69),
 
 	};
 	for (auto instruction : program) {
-		instruction.resolve(&R);
+		instruction->resolve(&R);
 		std::cout << R.acc << std::endl;
 	}
 	return 0;
