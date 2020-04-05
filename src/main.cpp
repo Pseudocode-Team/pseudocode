@@ -7,7 +7,7 @@
 #define DIVIDE		'/'
 
 //TODO: Dynamic typing, for now every value is int
-#typedef int PseudoValue // To enable dynamic typing we need to use one type for every value
+#define PseudoValue int // To enable dynamic typing we need to use one type for every value
 
 struct ASTNode {
 	PseudoValue value;
@@ -35,14 +35,17 @@ void sumIntResolver(PseudoValue* acc, ASTNode* self, ASTNode* left, ASTNode* rig
 	*acc = leftValue + rightValue;
 }
 
-ASTNode* createSum(PseudoValue a, PseudoValue b) {
-	return new ASTNode{(PseudoValue)NULL, &sumIntResolver, createConstInt(a), createConstInt(b)};
+ASTNode* createSum(ASTNode* a, ASTNode* b) {
+	return new ASTNode{(PseudoValue)NULL, &sumIntResolver, a, b};
 }
 
 
 int main() {
 	PseudoValue Accumulator;
-	ASTNode* program = createSum(1, 2);
+	ASTNode* program = createSum(
+			createSum(createConstInt(1), createConstInt(15)),
+			createConstInt(2)
+		);
 	program->resolve(&Accumulator);
 	std::cout << Accumulator;
 	return 0;
