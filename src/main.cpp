@@ -2,34 +2,9 @@
 #include <vector>
 #include <iostream>
 
-#define ADD 		'+'
-#define SUBSTRACT	'-'
-#define MULTIPLY	'*'
-#define DIVIDE		'/'
-
-//TODO: Dynamic typing, for now every value is int
-#define PseudoValue int // To enable dynamic typing we need to use one type for every value
-
-#define Program std::vector<ASTNode*>
-
-struct Runtime {
-	PseudoValue acc;
-	void error(char* err) {
-		std::cerr << "Unexpected error has occured:\n" << err << std::endl;
-		std::exit(1);
-	}
-};
-
-
-struct ASTNode {
-	PseudoValue value;
-	void (*resolver)(Runtime* r, ASTNode* self);
-	ASTNode* left;
-	ASTNode* right;
-	void resolve(Runtime* r) {
-		resolver(r, this);
-	}
-};
+#include "pdc.h"
+#include "runtime.cpp"
+#include "astnode.cpp"
 
 void constIntResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
