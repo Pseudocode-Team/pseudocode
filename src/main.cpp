@@ -10,8 +10,16 @@ void constIntResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }
 
+void constStringResolver(Runtime* r, ASTNode* self) {
+	r->acc = self->value;
+}
+
 ASTNode* createConstInt(PseudoValue value) {
 	return new ASTNode{value, &constIntResolver, nullptr, nullptr};
+}
+
+ASTNode* createConstString(PseudoValue value) {
+	return new ASTNode{value, &constStringResolver, nullptr, nullptr};
 }
 
 void sumIntResolver(Runtime* r, ASTNode* self) {
@@ -19,21 +27,37 @@ void sumIntResolver(Runtime* r, ASTNode* self) {
 	PseudoValue leftValue = r->acc;
 	self->right->resolve(r);
 	PseudoValue rightValue = r->acc;
+	r->acc = std::to_string(std::stoi(leftValue)+std::stoi(rightValue));
+}
+
+void sumStringResolver(Runtime* r, ASTNode* self) {
+	self->left->resolve(r);
+	PseudoValue leftValue = r->acc;
+	self->right->resolve(r);
+	PseudoValue rightValue = r->acc;
 	r->acc = leftValue + rightValue;
 }
 
-ASTNode* createSum(ASTNode* a, ASTNode* b) {
-	return new ASTNode{(PseudoValue)NULL, &sumIntResolver, a, b};
+ASTNode* createIntSum(ASTNode* a, ASTNode* b) {
+	return new ASTNode{"", &sumIntResolver, a, b};
+}
+
+ASTNode* createStringSum(ASTNode* a, ASTNode* b) {
+	return new ASTNode{"", &sumStringResolver, a, b};
 }
 
 int main() {
 	Runtime R;
 	Program program = {
-		createSum(
-			createSum(createConstInt(1), createConstInt(15)),
-			createConstInt(2)
+		createIntSum(
+			createIntSum(createConstInt("1"), createConstInt("15")),
+			createConstInt("2")
 		),
-		createConstInt(69),
+		createConstInt("69"),
+		createStringSum(
+			createConstString("Hello "),
+			createConstString("World")
+		),
 
 	};
 	for (auto instruction : program) {
