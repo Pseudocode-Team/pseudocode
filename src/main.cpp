@@ -38,12 +38,42 @@ void sumStringResolver(Runtime* r, ASTNode* self) {
 	r->acc = leftValue + rightValue;
 }
 
+void printResolver(Runtime* r, ASTNode* self) {
+	self->left->resolve(r);
+	PseudoValue printingValue = r->acc;
+	std::cout << printingValue << std::endl;
+}
+
+void assignmentResolver(Runtime* r, ASTNode* self) {
+	std::string varName = self->value;
+	self->left->resolve(r);
+	PseudoValue value = r->acc;
+	r->mem[varName] = {value, "number"};
+}
+
+void variableResolver(Runtime* r, ASTNode* self) {
+	std::string varName = self->value;
+	r->acc = r->mem[varName].value;
+}
+
 ASTNode* createIntSum(ASTNode* a, ASTNode* b) {
 	return new ASTNode{"", &sumIntResolver, a, b};
 }
 
 ASTNode* createStringSum(ASTNode* a, ASTNode* b) {
 	return new ASTNode{"", &sumStringResolver, a, b};
+}
+
+ASTNode* createPrint(ASTNode* arg) {
+	return new ASTNode{"", &printResolver, arg, nullptr};
+}
+
+ASTNode* createAssignment(std::string varName, ASTNode* value) {
+	return new ASTNode{varName, &assignmentResolver, value, nullptr};
+}
+
+ASTNode* createGetVariable(std::string varName) {
+	return new ASTNode{varName, &variableResolver, nullptr, nullptr};
 }
 
 int main() {
@@ -53,16 +83,19 @@ int main() {
 			createIntSum(createConstInt("1"), createConstInt("15")),
 			createConstInt("2")
 		),
-		createConstInt("69"),
-		createStringSum(
+		createPrint(createConstInt("69")),
+		createPrint(createStringSum(
 			createConstString("Hello "),
 			createConstString("World")
-		),
+		)),
+		createAssignment("a", createConstInt("6")),
+		createPrint(createGetVariable("a")),
+		createAssignment("a", createIntSum(createGetVariable("a"), createConstInt("1"))),
+		createPrint(createGetVariable("a")),
 
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);
-		std::cout << R.acc << std::endl;
 	}
 	return 0;
 }
