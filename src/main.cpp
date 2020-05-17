@@ -6,22 +6,23 @@
 #include "runtime.cpp"
 #include "astnode.cpp"
 
-void constIntResolver(Runtime* r, ASTNode* self) {
-	r->acc = self->value;
-}
-
-void constStringResolver(Runtime* r, ASTNode* self) {
+void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }
 
 ASTNode* createConstInt(std::string rawValue) {
 	PseudoValue* value = new PseudoValue(rawValue, Int);
-	return new ASTNode{value, &constIntResolver, nullptr, nullptr};
+	return new ASTNode{value, &constResolver, nullptr, nullptr};
+}
+
+ASTNode* createConstFloat(std::string rawValue) {
+	PseudoValue* value = new PseudoValue(rawValue, Float);
+	return new ASTNode{value, &constResolver, nullptr, nullptr};
 }
 
 ASTNode* createConstString(std::string rawValue) {
 	PseudoValue* value = new PseudoValue(rawValue, String);
-	return new ASTNode{value, &constStringResolver, nullptr, nullptr};
+	return new ASTNode{value, &constResolver, nullptr, nullptr};
 }
 
 void sumResolver(Runtime* r, ASTNode* self) {
@@ -30,13 +31,21 @@ void sumResolver(Runtime* r, ASTNode* self) {
 	self->right->resolve(r);
 	PseudoValue* rightValue = r->acc;
 	if (leftValue->type == rightValue->type) {
-		if (leftValue->type == Int || leftValue->type == Float) {
+		if (leftValue->type == Int) {
 			r->acc = new PseudoValue(
 						std::to_string(
 							std::stoi(leftValue->value) +
 							std::stoi(rightValue->value)
 						),
-						leftValue->type
+						Int
+					);
+		} else if (leftValue->type == Float) {
+			r->acc = new PseudoValue(
+						std::to_string(
+							std::stof(leftValue->value) +
+							std::stof(rightValue->value)
+						),
+						Float
 					);
 		} else if (leftValue->type == String) {
 			r->acc = new PseudoValue(
@@ -48,7 +57,10 @@ void sumResolver(Runtime* r, ASTNode* self) {
 	else if ((leftValue->type == Int && rightValue->type == Float)
 		|| (leftValue->type == Float && rightValue->type == Int)) {
 		r->acc = new PseudoValue(
-					leftValue->value + rightValue->value,
+					std::to_string(
+						std::stof(leftValue->value) +
+						std::stof(rightValue->value)
+					),
 					Float
 				);
 	} else {
@@ -96,10 +108,10 @@ ASTNode* createGetVariable(std::string rawVarName) {
 int main() {
 	Runtime R;
 	Program program = {
-		createSum(
+		createPrint(createSum(
 			createSum(createConstInt("1"), createConstInt("15")),
-			createConstInt("2")
-		),
+			createConstFloat("2.1")
+		)),
 		createPrint(createConstInt("69")),
 		createAssignment("a", createConstInt("6")),
 		createPrint(createGetVariable("a")),
