@@ -10,19 +10,21 @@ void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }
 
-ASTNode* createConstInt(std::string rawValue) {
-	PseudoValue* value = new PseudoValue(rawValue, Int);
+ASTNode* createConst(std::string rawValue, PseudoType dataType) {
+	PseudoValue* value = new PseudoValue(rawValue, dataType);
 	return new ASTNode{value, &constResolver, nullptr, nullptr};
+}
+
+ASTNode* createConstInt(std::string rawValue) {
+	return createConst(rawValue, Int);
 }
 
 ASTNode* createConstFloat(std::string rawValue) {
-	PseudoValue* value = new PseudoValue(rawValue, Float);
-	return new ASTNode{value, &constResolver, nullptr, nullptr};
+	return createConst(rawValue, Float);
 }
 
 ASTNode* createConstString(std::string rawValue) {
-	PseudoValue* value = new PseudoValue(rawValue, String);
-	return new ASTNode{value, &constResolver, nullptr, nullptr};
+	return createConst(rawValue, String);
 }
 
 void sumResolver(Runtime* r, ASTNode* self) {
