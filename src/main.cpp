@@ -14,65 +14,68 @@ void constStringResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }
 
-ASTNode* createConstInt(PseudoValue value) {
+ASTNode* createConstInt(std::string rawValue) {
+	PseudoValue* value = new PseudoValue(rawValue, Int);
 	return new ASTNode{value, &constIntResolver, nullptr, nullptr};
 }
 
-ASTNode* createConstString(PseudoValue value) {
+ASTNode* createConstString(std::string rawValue) {
+	PseudoValue* value = new PseudoValue(rawValue, String);
 	return new ASTNode{value, &constStringResolver, nullptr, nullptr};
 }
 
 void sumIntResolver(Runtime* r, ASTNode* self) {
 	self->left->resolve(r);
-	PseudoValue leftValue = r->acc;
+	int leftValue = std::stoi(r->acc->value);
 	self->right->resolve(r);
-	PseudoValue rightValue = r->acc;
-	r->acc = std::to_string(std::stoi(leftValue)+std::stoi(rightValue));
+	int rightValue = std::stoi(r->acc->value);
+	r->acc = new PseudoValue{std::to_string(leftValue + rightValue), Int};
 }
 
 void sumStringResolver(Runtime* r, ASTNode* self) {
 	self->left->resolve(r);
-	PseudoValue leftValue = r->acc;
+	std::string leftValue = r->acc->value;
 	self->right->resolve(r);
-	PseudoValue rightValue = r->acc;
-	r->acc = leftValue + rightValue;
+	std::string rightValue = r->acc->value;
+	r->acc = new PseudoValue{leftValue + rightValue, String};
 }
 
 void printResolver(Runtime* r, ASTNode* self) {
 	self->left->resolve(r);
-	PseudoValue printingValue = r->acc;
+	std::string printingValue = r->acc->value;
 	std::cout << printingValue << std::endl;
 }
 
 void assignmentResolver(Runtime* r, ASTNode* self) {
-	std::string varName = self->value;
+	std::string varName = self->value->value;
 	self->left->resolve(r);
-	PseudoValue value = r->acc;
-	r->mem[varName] = {value, "number"};
+	r->mem[varName] = r->acc;
 }
 
 void variableResolver(Runtime* r, ASTNode* self) {
-	std::string varName = self->value;
-	r->acc = r->mem[varName].value;
+	std::string varName = self->value->value;
+	r->acc = r->mem[varName];
 }
 
 ASTNode* createIntSum(ASTNode* a, ASTNode* b) {
-	return new ASTNode{"", &sumIntResolver, a, b};
+	return new ASTNode{nullptr, &sumIntResolver, a, b};
 }
 
 ASTNode* createStringSum(ASTNode* a, ASTNode* b) {
-	return new ASTNode{"", &sumStringResolver, a, b};
+	return new ASTNode{nullptr, &sumStringResolver, a, b};
 }
 
 ASTNode* createPrint(ASTNode* arg) {
-	return new ASTNode{"", &printResolver, arg, nullptr};
+	return new ASTNode{nullptr, &printResolver, arg, nullptr};
 }
 
-ASTNode* createAssignment(std::string varName, ASTNode* value) {
+ASTNode* createAssignment(std::string rawVarName, ASTNode* value) {
+	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
 	return new ASTNode{varName, &assignmentResolver, value, nullptr};
 }
 
-ASTNode* createGetVariable(std::string varName) {
+ASTNode* createGetVariable(std::string rawVarName) {
+	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
 	return new ASTNode{varName, &variableResolver, nullptr, nullptr};
 }
 

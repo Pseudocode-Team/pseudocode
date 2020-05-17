@@ -1,7 +1,7 @@
 #include "pdc.h"
 
 struct ASTNode {
-	PseudoValue value;
+	PseudoValue* value;
 	void (*resolver)(Runtime* r, ASTNode* self);
 	ASTNode* left;
 	ASTNode* right;
