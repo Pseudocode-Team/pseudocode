@@ -8,6 +8,13 @@ enum PseudoType {
 	String,
 	VarName,
 };
+
+static const char *PSEUDO_TYPES[] = {
+	"Int",
+	"Float",
+	"String",
+	"VarName",
+};
 #endif
 
 #define ADD 	'+'

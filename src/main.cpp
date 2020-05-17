@@ -24,20 +24,38 @@ ASTNode* createConstString(std::string rawValue) {
 	return new ASTNode{value, &constStringResolver, nullptr, nullptr};
 }
 
-void sumIntResolver(Runtime* r, ASTNode* self) {
+void sumResolver(Runtime* r, ASTNode* self) {
 	self->left->resolve(r);
-	int leftValue = std::stoi(r->acc->value);
+	PseudoValue* leftValue = r->acc;
 	self->right->resolve(r);
-	int rightValue = std::stoi(r->acc->value);
-	r->acc = new PseudoValue{std::to_string(leftValue + rightValue), Int};
-}
-
-void sumStringResolver(Runtime* r, ASTNode* self) {
-	self->left->resolve(r);
-	std::string leftValue = r->acc->value;
-	self->right->resolve(r);
-	std::string rightValue = r->acc->value;
-	r->acc = new PseudoValue{leftValue + rightValue, String};
+	PseudoValue* rightValue = r->acc;
+	if (leftValue->type == rightValue->type) {
+		if (leftValue->type == Int || leftValue->type == Float) {
+			r->acc = new PseudoValue(
+						std::to_string(
+							std::stoi(leftValue->value) +
+							std::stoi(rightValue->value)
+						),
+						leftValue->type
+					);
+		} else if (leftValue->type == String) {
+			r->acc = new PseudoValue(
+						leftValue->value + rightValue->value,
+						String
+					);
+		}
+	}
+	else if ((leftValue->type == Int && rightValue->type == Float)
+		|| (leftValue->type == Float && rightValue->type == Int)) {
+		r->acc = new PseudoValue(
+					leftValue->value + rightValue->value,
+					Float
+				);
+	} else {
+		char* err;
+		sprintf(err, "Cannot add %s to %s", PSEUDO_TYPES[leftValue->type], PSEUDO_TYPES[rightValue->type]);
+		r->error(err);
+	}
 }
 
 void printResolver(Runtime* r, ASTNode* self) {
@@ -57,12 +75,8 @@ void variableResolver(Runtime* r, ASTNode* self) {
 	r->acc = r->mem[varName];
 }
 
-ASTNode* createIntSum(ASTNode* a, ASTNode* b) {
-	return new ASTNode{nullptr, &sumIntResolver, a, b};
-}
-
-ASTNode* createStringSum(ASTNode* a, ASTNode* b) {
-	return new ASTNode{nullptr, &sumStringResolver, a, b};
+ASTNode* createSum(ASTNode* a, ASTNode* b) {
+	return new ASTNode{nullptr, &sumResolver, a, b};
 }
 
 ASTNode* createPrint(ASTNode* arg) {
@@ -82,20 +96,19 @@ ASTNode* createGetVariable(std::string rawVarName) {
 int main() {
 	Runtime R;
 	Program program = {
-		createIntSum(
-			createIntSum(createConstInt("1"), createConstInt("15")),
+		createSum(
+			createSum(createConstInt("1"), createConstInt("15")),
 			createConstInt("2")
 		),
 		createPrint(createConstInt("69")),
-		createPrint(createStringSum(
-			createConstString("Hello "),
-			createConstString("World")
-		)),
 		createAssignment("a", createConstInt("6")),
 		createPrint(createGetVariable("a")),
-		createAssignment("a", createIntSum(createGetVariable("a"), createConstInt("1"))),
+		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
 		createPrint(createGetVariable("a")),
-
+		createPrint(createSum(
+			createConstString("Hello "),
+			createConstInt("1")
+		)),
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);
