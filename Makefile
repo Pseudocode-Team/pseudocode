@@ -1,11 +1,8 @@
 SRC_DIR := ./src
 OBJ_DIR := ./.obj
 
-pdc: $(OBJ_DIR)/main.o
-	g++ -o pdc $(OBJ_DIR)/main.o
+test: pdc
+	./pdc
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	-mkdir -p $(OBJ_DIR)
-	g++ -c -o $@ $<
-
-
+pdc: $(SRC_DIR)/*.cpp $(SRC_DIR)/*.h
+	g++ -o pdc $(SRC_DIR)/*.cpp
