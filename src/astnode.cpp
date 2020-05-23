@@ -3,8 +3,7 @@
 struct ASTNode {
 	PseudoValue* value;
 	void (*resolver)(Runtime* r, ASTNode* self);
-	ASTNode* left;
-	ASTNode* right;
+	Instructions args;
 	void resolve(Runtime* r) {
 		resolver(r, this);
 	}
