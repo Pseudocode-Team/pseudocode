@@ -91,6 +91,24 @@ void variableResolver(Runtime* r, ASTNode* self) {
 	r->acc = r->mem[varName];
 }
 
+void instructionBlockResolver(Runtime* r, ASTNode* self) {
+	for ( auto instruction: self->args ) {
+		instruction->resolve(r);
+	}
+}
+
+void conditionalStatementResolver(Runtime* r, ASTNode* self) {
+	// Evaluate condition
+	self->args[0]->resolve(r);
+	if((bool) r->acc->value.length()) {
+		// Run TRUE block
+		self->args[1]->resolve(r);
+	} else {
+		// Run FALSE block
+		self->args[2]->resolve(r);
+	}
+}
+
 ASTNode* createSum(ASTNode* a, ASTNode* b) {
 	Instructions args = { a, b };
 	return new ASTNode{nullptr, &sumResolver, args};
@@ -112,6 +130,15 @@ ASTNode* createGetVariable(std::string rawVarName) {
 	return new ASTNode{varName, &variableResolver, EMPTY_ARGS};
 }
 
+ASTNode* createInstructionBlock(Instructions instructions) {
+	return new ASTNode{nullptr, &instructionBlockResolver, instructions};
+}
+
+ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTNode* falseBlock) {
+	Instructions args = { condition, trueBlock, falseBlock };
+	return new ASTNode{nullptr, &conditionalStatementResolver, args};
+}
+
 int main() {
 	Runtime R;
 	Instructions program = {
@@ -124,6 +151,15 @@ int main() {
 		createPrint(createGetVariable("a")),
 		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
 		createPrint(createGetVariable("a")),
+		createConditionalStatement(
+			createConstInt(""),
+			createInstructionBlock(Instructions{
+				createPrint(createConstString("TRUE")),
+			}),
+			createInstructionBlock(Instructions{
+				createPrint(createConstString("FALSE")),
+			})
+		),
 		createPrint(createSum(
 			createConstString("Hello "),
 			createConstInt("1")
