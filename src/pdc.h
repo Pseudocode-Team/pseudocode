@@ -6,16 +6,21 @@ enum PseudoType {
 	Int,
 	Float,
 	String,
+	Bool,
 	VarName,
+	Operator,
 };
 
 static const char *PSEUDO_TYPES[] = {
 	"Int",
 	"Float",
 	"String",
+	"Bool",
 	"VarName",
+	"Operator",
 };
 #endif
+
 
 #define ADD 	'+'
 #define SUBSTRACT	'-'

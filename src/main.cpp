@@ -3,10 +3,15 @@
 #include <iostream>
 
 #include "pdc.h"
-#include "runtime.cpp"
-#include "astnode.cpp"
+#include "runtime.h"
+#include "astnode.h"
+#include "bool.h"
 
 #define EMPTY_ARGS Instructions{}
+
+bool isNumeric(PseudoType type) {
+	return (type == Int || type == Float || type == Bool);
+}
 
 void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
@@ -27,6 +32,10 @@ ASTNode* createConstFloat(std::string rawValue) {
 
 ASTNode* createConstString(std::string rawValue) {
 	return createConst(rawValue, String);
+}
+
+ASTNode* createConstBool(std::string rawValue) {
+	return createConst(rawValue, Bool);
 }
 
 void sumResolver(Runtime* r, ASTNode* self) {
@@ -124,6 +133,7 @@ int main() {
 		createPrint(createGetVariable("a")),
 		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
 		createPrint(createGetVariable("a")),
+		createPrint(createComparison(EQUAL, createConstString("11"), createConstInt("10"))),
 		createPrint(createSum(
 			createConstString("Hello "),
 			createConstInt("1")
