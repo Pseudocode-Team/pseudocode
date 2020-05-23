@@ -6,13 +6,15 @@
 #include "runtime.cpp"
 #include "astnode.cpp"
 
+#define EMPTY_ARGS Instructions{}
+
 void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }
 
 ASTNode* createConst(std::string rawValue, PseudoType dataType) {
 	PseudoValue* value = new PseudoValue(rawValue, dataType);
-	return new ASTNode{value, &constResolver, nullptr, nullptr};
+	return new ASTNode{value, &constResolver, EMPTY_ARGS};
 }
 
 ASTNode* createConstInt(std::string rawValue) {
@@ -28,9 +30,9 @@ ASTNode* createConstString(std::string rawValue) {
 }
 
 void sumResolver(Runtime* r, ASTNode* self) {
-	self->left->resolve(r);
+	self->args[0]->resolve(r);
 	PseudoValue* leftValue = r->acc;
-	self->right->resolve(r);
+	self->args[1]->resolve(r);
 	PseudoValue* rightValue = r->acc;
 	if (leftValue->type == rightValue->type) {
 		if (leftValue->type == Int) {
@@ -73,14 +75,14 @@ void sumResolver(Runtime* r, ASTNode* self) {
 }
 
 void printResolver(Runtime* r, ASTNode* self) {
-	self->left->resolve(r);
+	self->args[0]->resolve(r);
 	std::string printingValue = r->acc->value;
 	std::cout << printingValue << std::endl;
 }
 
 void assignmentResolver(Runtime* r, ASTNode* self) {
 	std::string varName = self->value->value;
-	self->left->resolve(r);
+	self->args[0]->resolve(r);
 	r->mem[varName] = r->acc;
 }
 
@@ -90,26 +92,29 @@ void variableResolver(Runtime* r, ASTNode* self) {
 }
 
 ASTNode* createSum(ASTNode* a, ASTNode* b) {
-	return new ASTNode{nullptr, &sumResolver, a, b};
+	Instructions args = { a, b };
+	return new ASTNode{nullptr, &sumResolver, args};
 }
 
 ASTNode* createPrint(ASTNode* arg) {
-	return new ASTNode{nullptr, &printResolver, arg, nullptr};
+	Instructions args = { arg };
+	return new ASTNode{nullptr, &printResolver, args};
 }
 
 ASTNode* createAssignment(std::string rawVarName, ASTNode* value) {
 	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
-	return new ASTNode{varName, &assignmentResolver, value, nullptr};
+	Instructions args = { value };
+	return new ASTNode{varName, &assignmentResolver, args};
 }
 
 ASTNode* createGetVariable(std::string rawVarName) {
 	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
-	return new ASTNode{varName, &variableResolver, nullptr, nullptr};
+	return new ASTNode{varName, &variableResolver, EMPTY_ARGS};
 }
 
 int main() {
 	Runtime R;
-	Program program = {
+	Instructions program = {
 		createPrint(createSum(
 			createSum(createConstInt("1"), createConstInt("15")),
 			createConstFloat("2.1")

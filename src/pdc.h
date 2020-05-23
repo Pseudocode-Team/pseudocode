@@ -31,4 +31,4 @@ struct PseudoValue {
 };
 #endif
 
-#define Program std::vector<ASTNode*>
+#define Instructions std::vector<ASTNode*>
