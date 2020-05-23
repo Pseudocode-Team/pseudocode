@@ -123,11 +123,7 @@ int main() {
 		createPrint(createGetVariable("a")),
 		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
 		createPrint(createGetVariable("a")),
-		createPrint(createComparison(EQUAL, createConstString("11"), createConstInt("10"))),
-		createPrint(createSum(
-			createConstString("Hello "),
-			createConstInt("1")
-		)),
+		createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);
