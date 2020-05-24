@@ -99,7 +99,7 @@ void instructionBlockResolver(Runtime* r, ASTNode* self) {
 void conditionalStatementResolver(Runtime* r, ASTNode* self) {
 	// Evaluate condition
 	self->args[0]->resolve(r);
-	if((bool) r->acc->value.length()) {
+	if(mapBool(r->acc)) {
 		// Run TRUE block
 		self->args[1]->resolve(r);
 	} else {
