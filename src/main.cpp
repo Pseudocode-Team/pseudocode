@@ -9,8 +9,6 @@
 #include "bool.h"
 #include "loop.h"
 
-#define EMPTY_ARGS Instructions{}
-
 bool isNumeric(PseudoType type) {
 	return (type == Int || type == Float || type == Bool);
 }

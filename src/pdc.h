@@ -37,3 +37,4 @@ struct PseudoValue {
 #endif
 
 #define Instructions std::vector<ASTNode*>
+#define EMPTY_ARGS Instructions{}
