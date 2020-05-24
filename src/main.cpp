@@ -6,6 +6,7 @@
 #include "runtime.h"
 #include "astnode.h"
 #include "bool.h"
+#include "loop.h"
 
 #define EMPTY_ARGS Instructions{}
 
@@ -158,6 +159,14 @@ int main() {
 			}),
 			createInstructionBlock(Instructions{
 				createPrint(createConstString("FALSE")),
+			})
+		),
+		createForLoop(
+			createAssignment("b", createConstInt("0")),
+			createComparison(LESS, createGetVariable("b"), createConstInt("10")),
+			createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
+			createInstructionBlock(Instructions{
+				createPrint(createGetVariable("b"))
 			})
 		),
 	};
