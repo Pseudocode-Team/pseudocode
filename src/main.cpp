@@ -5,6 +5,7 @@
 #include "pdc.h"
 #include "runtime.h"
 #include "astnode.h"
+#include "block.h"
 #include "bool.h"
 #include "loop.h"
 
@@ -91,12 +92,6 @@ void variableResolver(Runtime* r, ASTNode* self) {
 	r->acc = r->mem[varName];
 }
 
-void instructionBlockResolver(Runtime* r, ASTNode* self) {
-	for ( auto instruction: self->args ) {
-		instruction->resolve(r);
-	}
-}
-
 void conditionalStatementResolver(Runtime* r, ASTNode* self) {
 	// Evaluate condition
 	self->args[0]->resolve(r);
@@ -128,10 +123,6 @@ ASTNode* createAssignment(std::string rawVarName, ASTNode* value) {
 ASTNode* createGetVariable(std::string rawVarName) {
 	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
 	return new ASTNode{varName, &variableResolver, EMPTY_ARGS};
-}
-
-ASTNode* createInstructionBlock(Instructions instructions) {
-	return new ASTNode{nullptr, &instructionBlockResolver, instructions};
 }
 
 ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTNode* falseBlock) {

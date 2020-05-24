@@ -1,6 +1,7 @@
 #include "pdc.h"
 #include "astnode.h"
 #include "bool.h"
+#include "block.h"
 
 void loopResolver(Runtime* r, ASTNode* self) {
 	self->args[0]->resolve(r);
