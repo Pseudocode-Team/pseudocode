@@ -8,6 +8,7 @@
 #include "block.h"
 #include "bool.h"
 #include "loop.h"
+#include "functions.h"
 
 bool isNumeric(PseudoType type) {
 	return (type == Int || type == Float || type == Bool);
@@ -160,6 +161,11 @@ int main() {
 				createPrint(createGetVariable("b"))
 			})
 		),
+		createFunctionDeclaration("test", EMPTY_ARGS, Instructions{
+				createPrint(createConstString("Funkcja test"))
+			}
+		),
+		createFunctionCall("test", EMPTY_ARGS),
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);
