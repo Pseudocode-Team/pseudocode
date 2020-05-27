@@ -19,7 +19,6 @@ PseudoValue* negation(PseudoValue* boolValue);
 PseudoValue* andComparator(PseudoValue* a, PseudoValue* b);
 PseudoValue* orComparator(PseudoValue* a, PseudoValue* b);
 PseudoValue* equalComparator(PseudoValue* a, PseudoValue* b);
-bool isNumeric(PseudoType type);
 PseudoValue* greaterComparator(PseudoValue* a, PseudoValue* b);
 void comparisonResolver(Runtime* r, ASTNode* self);
 ASTNode* createComparison(PseudoValue* op, ASTNode* left, ASTNode* right);

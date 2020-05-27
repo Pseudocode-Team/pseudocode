@@ -9,10 +9,6 @@
 
 #define EMPTY_ARGS Instructions{}
 
-bool isNumeric(PseudoType type) {
-	return (type == Int || type == Float || type == Bool);
-}
-
 void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }

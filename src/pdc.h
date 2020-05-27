@@ -37,3 +37,4 @@ struct PseudoValue {
 #endif
 
 #define Instructions std::vector<ASTNode*>
+#define isNumeric(type)	(type == Int || type == Float || type == Bool)
