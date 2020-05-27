@@ -13,6 +13,8 @@ bool isNumeric(PseudoType type) {
 	return (type == Int || type == Float || type == Bool);
 }
 
+PseudoValue* NIL = new PseudoValue{"nil", Nil};
+
 void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
 }
@@ -82,12 +84,12 @@ void printResolver(Runtime* r, ASTNode* self) {
 void assignmentResolver(Runtime* r, ASTNode* self) {
 	std::string varName = self->value->value;
 	self->args[0]->resolve(r);
-	r->mem[varName] = r->acc;
+	r->currentScope->setVar(varName, r->acc);
 }
 
 void variableResolver(Runtime* r, ASTNode* self) {
 	std::string varName = self->value->value;
-	r->acc = r->mem[varName];
+	r->acc = r->currentScope->getVar(varName);
 }
 
 void conditionalStatementResolver(Runtime* r, ASTNode* self) {

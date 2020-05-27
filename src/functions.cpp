@@ -15,11 +15,13 @@ void functionDeclarationResolver(Runtime* r, ASTNode* self) {
 }
 
 void functionCallResolver(Runtime *r, ASTNode* self) {
+	r->newScope();
 	try {
 		r->functionStack[self->value->value]->resolve(r);
 	} catch(Return e) {
 		// Keep value in acc
 	}
+	r->destroyScope();
 }
 
 ASTNode* createReturn(ASTNode* value) {

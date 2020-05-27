@@ -37,7 +37,7 @@ struct PseudoValue {
 	PseudoValue(std::string _value, PseudoType _type): value(_value), type(_type) {};
 };
 
-PseudoValue* NIL = new PseudoValue{"nil", Nil};
+extern PseudoValue* NIL;
 #endif
 
 #define Instructions std::vector<ASTNode*>

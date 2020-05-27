@@ -2,6 +2,7 @@
 #define RUNTIME
 #include <map>
 #include <iostream>
+#include "scope.h"
 
 struct ASTNode;
 
@@ -14,7 +15,10 @@ struct Runtime {
 		std::exit(1);
 	}
 	void newScope() {
-		this->currentScope = this->currentScope->enterScope();
+		currentScope = currentScope->enterScope();
+	}
+	void destroyScope() {
+		currentScope = currentScope->exitScope();
 	}
 };
 #endif
