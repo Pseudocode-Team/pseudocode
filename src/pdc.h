@@ -7,7 +7,9 @@ enum PseudoType {
 	Int,
 	Float,
 	String,
+	Bool,
 	VarName,
+	Operator,
 };
 
 static const char *PSEUDO_TYPES[] = {
@@ -15,9 +17,12 @@ static const char *PSEUDO_TYPES[] = {
 	"Int",
 	"Float",
 	"String",
+	"Bool",
 	"VarName",
+	"Operator",
 };
 #endif
+
 
 #define ADD 	'+'
 #define SUBSTRACT	'-'
@@ -36,3 +41,4 @@ PseudoValue* NIL = new PseudoValue{"nil", Nil};
 #endif
 
 #define Instructions std::vector<ASTNode*>
+#define EMPTY_ARGS Instructions{}

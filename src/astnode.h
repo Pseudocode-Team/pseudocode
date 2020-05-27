@@ -1,4 +1,9 @@
 #include "pdc.h"
+#include <vector>
+
+#ifndef ASTNODE
+#define ASTNODE
+#include "runtime.h"
 
 struct ASTNode {
 	PseudoValue* value;
@@ -8,3 +13,5 @@ struct ASTNode {
 		resolver(r, this);
 	}
 };
+
+#endif

@@ -3,10 +3,15 @@
 #include <iostream>
 
 #include "pdc.h"
-#include "runtime.cpp"
-#include "astnode.cpp"
+#include "runtime.h"
+#include "astnode.h"
+#include "block.h"
+#include "bool.h"
+#include "loop.h"
 
-#define EMPTY_ARGS Instructions{}
+bool isNumeric(PseudoType type) {
+	return (type == Int || type == Float || type == Bool);
+}
 
 void constResolver(Runtime* r, ASTNode* self) {
 	r->acc = self->value;
@@ -29,44 +34,38 @@ ASTNode* createConstString(std::string rawValue) {
 	return createConst(rawValue, String);
 }
 
+ASTNode* createConstBool(std::string rawValue) {
+	return createConst(rawValue, Bool);
+}
+
 void sumResolver(Runtime* r, ASTNode* self) {
 	self->args[0]->resolve(r);
 	PseudoValue* leftValue = r->acc;
 	self->args[1]->resolve(r);
 	PseudoValue* rightValue = r->acc;
 	if (leftValue->type == rightValue->type) {
-		if (leftValue->type == Int) {
+		if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
 			r->acc = new PseudoValue(
-						std::to_string(
-							std::stoi(leftValue->value) +
-							std::stoi(rightValue->value)
-						),
-						Int
-					);
-		} else if (leftValue->type == Float) {
-			r->acc = new PseudoValue(
-						std::to_string(
-							std::stof(leftValue->value) +
-							std::stof(rightValue->value)
-						),
-						Float
-					);
-		} else if (leftValue->type == String) {
-			r->acc = new PseudoValue(
-						leftValue->value + rightValue->value,
-						String
-					);
-		}
-	}
-	else if ((leftValue->type == Int && rightValue->type == Float)
-		|| (leftValue->type == Float && rightValue->type == Int)) {
-		r->acc = new PseudoValue(
 					std::to_string(
 						std::stof(leftValue->value) +
 						std::stof(rightValue->value)
 					),
-					Float
+					leftValue->type
 				);
+		} else if (leftValue->type == String) {
+			r->acc = new PseudoValue(
+					leftValue->value + rightValue->value,
+					String
+				);
+		}
+	} else if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
+		r->acc = new PseudoValue(
+				std::to_string(
+					std::stof(leftValue->value) +
+					std::stof(rightValue->value)
+				),
+				Float
+			);
 	} else {
 		char* err;
 		sprintf(err, "Cannot add %s to %s", PSEUDO_TYPES[leftValue->type], PSEUDO_TYPES[rightValue->type]);
@@ -91,6 +90,18 @@ void variableResolver(Runtime* r, ASTNode* self) {
 	r->acc = r->mem[varName];
 }
 
+void conditionalStatementResolver(Runtime* r, ASTNode* self) {
+	// Evaluate condition
+	self->args[0]->resolve(r);
+	if(mapBool(r->acc)) {
+		// Run TRUE block
+		self->args[1]->resolve(r);
+	} else {
+		// Run FALSE block
+		self->args[2]->resolve(r);
+	}
+}
+
 ASTNode* createSum(ASTNode* a, ASTNode* b) {
 	Instructions args = { a, b };
 	return new ASTNode{nullptr, &sumResolver, args};
@@ -112,6 +123,11 @@ ASTNode* createGetVariable(std::string rawVarName) {
 	return new ASTNode{varName, &variableResolver, EMPTY_ARGS};
 }
 
+ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTNode* falseBlock) {
+	Instructions args = { condition, trueBlock, falseBlock };
+	return new ASTNode{nullptr, &conditionalStatementResolver, args};
+}
+
 int main() {
 	Runtime R;
 	Instructions program = {
@@ -124,10 +140,24 @@ int main() {
 		createPrint(createGetVariable("a")),
 		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
 		createPrint(createGetVariable("a")),
-		createPrint(createSum(
-			createConstString("Hello "),
-			createConstInt("1")
-		)),
+		createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
+		createConditionalStatement(
+			createComparison(EQUAL, createConstString("aaa"), createConstString("aaa")),
+			createInstructionBlock(Instructions{
+				createPrint(createConstString("TRUE")),
+			}),
+			createInstructionBlock(Instructions{
+				createPrint(createConstString("FALSE")),
+			})
+		),
+		createForLoop(
+			createAssignment("b", createConstInt("0")),
+			createComparison(LESS, createGetVariable("b"), createConstInt("10")),
+			createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
+			createInstructionBlock(Instructions{
+				createPrint(createGetVariable("b"))
+			})
+		),
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);
