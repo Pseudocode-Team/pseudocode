@@ -3,6 +3,7 @@
 #ifndef PSEUDO_TYPE
 #define PSEUDO_TYPE
 enum PseudoType {
+	Nil,
 	Int,
 	Float,
 	String,
@@ -10,6 +11,7 @@ enum PseudoType {
 };
 
 static const char *PSEUDO_TYPES[] = {
+	"nil",
 	"Int",
 	"Float",
 	"String",
@@ -29,6 +31,8 @@ struct PseudoValue {
 	PseudoType type;
 	PseudoValue(std::string _value, PseudoType _type): value(_value), type(_type) {};
 };
+
+PseudoValue* NIL = new PseudoValue{"nil", Nil};
 #endif
 
 #define Instructions std::vector<ASTNode*>
