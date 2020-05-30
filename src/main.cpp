@@ -3,8 +3,9 @@
 #include <iostream>
 
 #include "pdc.h"
-#include "runtime.cpp"
-#include "astnode.cpp"
+#include "runtime.h"
+#include "astnode.h"
+#include "bool.h"
 
 #define EMPTY_ARGS Instructions{}
 
@@ -29,44 +30,38 @@ ASTNode* createConstString(std::string rawValue) {
 	return createConst(rawValue, String);
 }
 
+ASTNode* createConstBool(std::string rawValue) {
+	return createConst(rawValue, Bool);
+}
+
 void sumResolver(Runtime* r, ASTNode* self) {
 	self->args[0]->resolve(r);
 	PseudoValue* leftValue = r->acc;
 	self->args[1]->resolve(r);
 	PseudoValue* rightValue = r->acc;
 	if (leftValue->type == rightValue->type) {
-		if (leftValue->type == Int) {
+		if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
 			r->acc = new PseudoValue(
-						std::to_string(
-							std::stoi(leftValue->value) +
-							std::stoi(rightValue->value)
-						),
-						Int
-					);
-		} else if (leftValue->type == Float) {
-			r->acc = new PseudoValue(
-						std::to_string(
-							std::stof(leftValue->value) +
-							std::stof(rightValue->value)
-						),
-						Float
-					);
-		} else if (leftValue->type == String) {
-			r->acc = new PseudoValue(
-						leftValue->value + rightValue->value,
-						String
-					);
-		}
-	}
-	else if ((leftValue->type == Int && rightValue->type == Float)
-		|| (leftValue->type == Float && rightValue->type == Int)) {
-		r->acc = new PseudoValue(
 					std::to_string(
 						std::stof(leftValue->value) +
 						std::stof(rightValue->value)
 					),
-					Float
+					leftValue->type
 				);
+		} else if (leftValue->type == String) {
+			r->acc = new PseudoValue(
+					leftValue->value + rightValue->value,
+					String
+				);
+		}
+	} else if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
+		r->acc = new PseudoValue(
+				std::to_string(
+					std::stof(leftValue->value) +
+					std::stof(rightValue->value)
+				),
+				Float
+			);
 	} else {
 		char* err;
 		sprintf(err, "Cannot add %s to %s", PSEUDO_TYPES[leftValue->type], PSEUDO_TYPES[rightValue->type]);
@@ -124,10 +119,7 @@ int main() {
 		createPrint(createGetVariable("a")),
 		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
 		createPrint(createGetVariable("a")),
-		createPrint(createSum(
-			createConstString("Hello "),
-			createConstInt("1")
-		)),
+		createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);

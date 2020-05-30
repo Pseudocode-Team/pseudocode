@@ -1,5 +1,7 @@
+#ifndef RUNTIME
+#define RUNTIME
 #include <map>
-#include "pdc.h"
+#include <iostream>
 
 struct Runtime {
 	PseudoValue* acc;
@@ -9,3 +11,4 @@ struct Runtime {
 		std::exit(1);
 	}
 };
+#endif
