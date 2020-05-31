@@ -161,11 +161,24 @@ int main() {
 				createPrint(createGetVariable("b"))
 			})
 		),
-		createFunctionDeclaration("test", EMPTY_ARGS, Instructions{
-				createPrint(createConstString("Funkcja test"))
-			}
+		createFunctionDeclaration(
+			"add",
+			new ASTNode{nullptr, nullptr, Instructions{
+				new ASTNode{new PseudoValue{"a", VarName}, nullptr, EMPTY_ARGS},
+				new ASTNode{new PseudoValue{"b", VarName}, nullptr, EMPTY_ARGS},
+			}},
+			createInstructionBlock(Instructions{
+				createPrint(createConstString("Funkcja test")),
+				createReturn(createSum(
+					createGetVariable("a"),
+					createGetVariable("b")
+				))
+			})
 		),
-		createFunctionCall("test", EMPTY_ARGS),
+		createPrint(createFunctionCall("test", new ASTNode{nullptr, nullptr, Instructions{
+			createConstInt("2"),
+			createConstInt("3")
+		}})),
 	};
 	for (auto instruction : program) {
 		instruction->resolve(&R);

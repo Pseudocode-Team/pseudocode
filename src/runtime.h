@@ -2,6 +2,8 @@
 #define RUNTIME
 #include <map>
 #include <iostream>
+#include <vector>
+#include "pdc.h"
 #include "scope.h"
 
 struct ASTNode;
@@ -9,7 +11,7 @@ struct ASTNode;
 struct Runtime {
 	PseudoValue* acc;
 	Scope* currentScope = new Scope();
-	std::map<std::string, ASTNode*> functionStack;
+	std::map<std::string, Instructions*> functionStack;
 	void error(char* err) {
 		std::cerr << "Unexpected error has occured:\n\t" << err << std::endl;
 		std::exit(1);
