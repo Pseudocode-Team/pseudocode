@@ -5,7 +5,9 @@
 #include "pdc.h"
 #include "runtime.h"
 #include "astnode.h"
+#include "block.h"
 #include "bool.h"
+#include "loop.h"
 
 #define EMPTY_ARGS Instructions{}
 
@@ -86,12 +88,6 @@ void variableResolver(Runtime* r, ASTNode* self) {
 	r->acc = r->mem[varName];
 }
 
-void instructionBlockResolver(Runtime* r, ASTNode* self) {
-	for ( auto instruction: self->args ) {
-		instruction->resolve(r);
-	}
-}
-
 void conditionalStatementResolver(Runtime* r, ASTNode* self) {
 	// Evaluate condition
 	self->args[0]->resolve(r);
@@ -125,10 +121,6 @@ ASTNode* createGetVariable(std::string rawVarName) {
 	return new ASTNode{varName, &variableResolver, EMPTY_ARGS};
 }
 
-ASTNode* createInstructionBlock(Instructions instructions) {
-	return new ASTNode{nullptr, &instructionBlockResolver, instructions};
-}
-
 ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTNode* falseBlock) {
 	Instructions args = { condition, trueBlock, falseBlock };
 	return new ASTNode{nullptr, &conditionalStatementResolver, args};
@@ -154,6 +146,14 @@ int main() {
 			}),
 			createInstructionBlock(Instructions{
 				createPrint(createConstString("FALSE")),
+			})
+		),
+		createForLoop(
+			createAssignment("b", createConstInt("0")),
+			createComparison(LESS, createGetVariable("b"), createConstInt("10")),
+			createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
+			createInstructionBlock(Instructions{
+				createPrint(createGetVariable("b"))
 			})
 		),
 	};
