@@ -10,10 +10,6 @@
 #include "loop.h"
 #include "functions.h"
 
-bool isNumeric(PseudoType type) {
-	return (type == Int || type == Float || type == Bool);
-}
-
 PseudoValue* NIL = new PseudoValue{"nil", Nil};
 
 void constResolver(Runtime* r, ASTNode* self) {
