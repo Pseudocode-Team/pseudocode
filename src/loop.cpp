@@ -21,14 +21,12 @@ ASTNode* createWhileLoop(ASTNode* condition, ASTNode* block) {
 ASTNode* createForLoop(ASTNode* startExpression, ASTNode* condition, ASTNode* endExpression, ASTNode* block) {
 	// Put endExpression at the end of instruction block
 	block->args.push_back(endExpression);
-	Instructions args = { condition, block };
-	ASTNode* loop = new ASTNode{nullptr, &loopResolver, args };
+	ASTNode* loop = createWhileLoop(condition, block);
 	// Put startExpression before the loop
 	return createInstructionBlock(Instructions{ startExpression, loop });
 }
 
 ASTNode* createDoWhileLoop(ASTNode* condition, ASTNode* block) {
-	Instructions args = { condition, block };
-	ASTNode* loop = new ASTNode{nullptr, &loopResolver, args };
+	ASTNode* loop = createWhileLoop(condition, block);
 	return createInstructionBlock(Instructions{ block, loop });
 }
