@@ -5,26 +5,26 @@
 class Return {};
 
 void returnResolver(Runtime* r, ASTNode* self) {
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	throw Return();
 }
 
 void functionDeclarationResolver(Runtime* r, ASTNode* self) {
-	r->functionStack[self->value->value] = &(self->args);
+	r->functionStack[self->value->value] = self->args;
 }
 
 void functionCallResolver(Runtime *r, ASTNode* self) {
 	r->newScope();
 	ASTNode* functionArgs = r->functionStack[self->value->value]->at(0);
-	printf("ARGS ACC\n");
-	if (self->args[0]->args.size() != functionArgs->args.size()) {
+	if (self->args->at(0)->args->size() != functionArgs->args->size()) {
 		r->error((char*)"Given args and declared args length does not match");
 	}
+
 	// Initialize function arguments
-	for (unsigned i = 0; i < self->args[0]->args.size(); i++) {
-		self->args[0]->args[i]->resolve(r);
+	for (unsigned i = 0; i < self->args->at(0)->args->size(); i++) {
+		self->args->at(0)->args->at(i)->resolve(r);
 		r->currentScope->setVar(
-			functionArgs->args[i]->value->value,
+			functionArgs->args->at(i)->value->value,
 			r->acc
 		);
 	}
@@ -40,7 +40,7 @@ void functionCallResolver(Runtime *r, ASTNode* self) {
 }
 
 ASTNode* createReturn(ASTNode* value) {
-	Instructions args = { value };
+	Instructions* args = new Instructions{ value };
 	return new ASTNode{nullptr, &returnResolver, args};
 }
 
@@ -53,11 +53,11 @@ ASTNode* createFunctionDeclaration(
 	return new ASTNode{
 		functionName,
 		&functionDeclarationResolver,
-		Instructions{functionArgs, functionInstructions}
+		new Instructions{functionArgs, functionInstructions}
 	};
 }
 
 ASTNode* createFunctionCall(std::string rawFunctionName, ASTNode* functionArgs) {
 	PseudoValue* functionName = new PseudoValue{ rawFunctionName, VarName };
-	return new ASTNode{functionName, &functionCallResolver, Instructions{functionArgs}};
+	return new ASTNode{functionName, &functionCallResolver, new Instructions{functionArgs}};
 }

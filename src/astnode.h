@@ -8,7 +8,7 @@
 struct ASTNode {
 	PseudoValue* value;
 	void (*resolver)(Runtime* r, ASTNode* self);
-	Instructions args;
+	Instructions* args;
 	void resolve(Runtime* r) {
 		resolver(r, this);
 	}

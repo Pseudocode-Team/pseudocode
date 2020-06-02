@@ -38,9 +38,9 @@ ASTNode* createConstBool(std::string rawValue) {
 }
 
 void sumResolver(Runtime* r, ASTNode* self) {
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	PseudoValue* leftValue = r->acc;
-	self->args[1]->resolve(r);
+	self->args->at(1)->resolve(r);
 	PseudoValue* rightValue = r->acc;
 	if (leftValue->type == rightValue->type) {
 		if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
@@ -73,14 +73,14 @@ void sumResolver(Runtime* r, ASTNode* self) {
 }
 
 void printResolver(Runtime* r, ASTNode* self) {
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	std::string printingValue = r->acc->value;
 	std::cout << printingValue << std::endl;
 }
 
 void assignmentResolver(Runtime* r, ASTNode* self) {
 	std::string varName = self->value->value;
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	r->currentScope->setVar(varName, r->acc);
 }
 
@@ -91,29 +91,29 @@ void variableResolver(Runtime* r, ASTNode* self) {
 
 void conditionalStatementResolver(Runtime* r, ASTNode* self) {
 	// Evaluate condition
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	if(mapBool(r->acc)) {
 		// Run TRUE block
-		self->args[1]->resolve(r);
+		self->args->at(1)->resolve(r);
 	} else {
 		// Run FALSE block
-		self->args[2]->resolve(r);
+		self->args->at(2)->resolve(r);
 	}
 }
 
 ASTNode* createSum(ASTNode* a, ASTNode* b) {
-	Instructions args = { a, b };
+	Instructions* args = new Instructions{ a, b };
 	return new ASTNode{nullptr, &sumResolver, args};
 }
 
 ASTNode* createPrint(ASTNode* arg) {
-	Instructions args = { arg };
+	Instructions* args = new Instructions{ arg };
 	return new ASTNode{nullptr, &printResolver, args};
 }
 
 ASTNode* createAssignment(std::string rawVarName, ASTNode* value) {
 	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
-	Instructions args = { value };
+	Instructions* args = new Instructions{ value };
 	return new ASTNode{varName, &assignmentResolver, args};
 }
 
@@ -123,7 +123,7 @@ ASTNode* createGetVariable(std::string rawVarName) {
 }
 
 ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTNode* falseBlock) {
-	Instructions args = { condition, trueBlock, falseBlock };
+	Instructions* args = new Instructions{ condition, trueBlock, falseBlock };
 	return new ASTNode{nullptr, &conditionalStatementResolver, args};
 }
 
@@ -142,10 +142,10 @@ int main() {
 		createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
 		createConditionalStatement(
 			createComparison(EQUAL, createConstString("aaa"), createConstString("aaa")),
-			createInstructionBlock(Instructions{
+			createInstructionBlock(new Instructions{
 				createPrint(createConstString("TRUE")),
 			}),
-			createInstructionBlock(Instructions{
+			createInstructionBlock(new Instructions{
 				createPrint(createConstString("FALSE")),
 			})
 		),
@@ -153,17 +153,17 @@ int main() {
 			createAssignment("b", createConstInt("0")),
 			createComparison(LESS, createGetVariable("b"), createConstInt("10")),
 			createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
-			createInstructionBlock(Instructions{
+			createInstructionBlock(new Instructions{
 				createPrint(createGetVariable("b"))
 			})
 		),
 		createFunctionDeclaration(
 			"add",
-			new ASTNode{nullptr, nullptr, Instructions{
+			new ASTNode{nullptr, nullptr, new Instructions{
 				new ASTNode{new PseudoValue{"a", VarName}, nullptr, EMPTY_ARGS},
 				new ASTNode{new PseudoValue{"b", VarName}, nullptr, EMPTY_ARGS},
 			}},
-			createInstructionBlock(Instructions{
+			createInstructionBlock(new Instructions{
 				createPrint(createConstString("Funkcja test")),
 				createReturn(createSum(
 					createGetVariable("a"),
@@ -171,7 +171,7 @@ int main() {
 				))
 			})
 		),
-		createPrint(createFunctionCall("test", new ASTNode{nullptr, nullptr, Instructions{
+		createPrint(createFunctionCall("add", new ASTNode{nullptr, nullptr, new Instructions{
 			createConstInt("2"),
 			createConstInt("3")
 		}})),

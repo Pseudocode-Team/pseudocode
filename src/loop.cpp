@@ -5,28 +5,28 @@
 
 void loopResolver(Runtime* r, ASTNode* self) {
 	// self->args[0] is the loop condition
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	while(mapBool(r->acc)) {
-		self->args[1]->resolve(r);
+		self->args->at(1)->resolve(r);
 		// check again loop condition
-		self->args[0]->resolve(r);
+		self->args->at(0)->resolve(r);
 	}
 }
 
 ASTNode* createWhileLoop(ASTNode* condition, ASTNode* block) {
-	Instructions args = { condition, block };
+	Instructions* args = new Instructions{ condition, block };
 	return new ASTNode{nullptr, &loopResolver, args };
 }
 
 ASTNode* createForLoop(ASTNode* startExpression, ASTNode* condition, ASTNode* endExpression, ASTNode* block) {
 	// Put endExpression at the end of instruction block
-	block->args.push_back(endExpression);
+	block->args->push_back(endExpression);
 	ASTNode* loop = createWhileLoop(condition, block);
 	// Put startExpression before the loop
-	return createInstructionBlock(Instructions{ startExpression, loop });
+	return createInstructionBlock(new Instructions{ startExpression, loop });
 }
 
 ASTNode* createDoWhileLoop(ASTNode* condition, ASTNode* block) {
 	ASTNode* loop = createWhileLoop(condition, block);
-	return createInstructionBlock(Instructions{ block, loop });
+	return createInstructionBlock(new Instructions{ block, loop });
 }

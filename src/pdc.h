@@ -41,5 +41,5 @@ extern PseudoValue* NIL;
 #endif
 
 #define Instructions std::vector<ASTNode*>
-#define EMPTY_ARGS Instructions{}
+#define EMPTY_ARGS new Instructions{}
 #define isNumeric(type)	(type == Int || type == Float || type == Bool)

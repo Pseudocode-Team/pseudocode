@@ -61,9 +61,9 @@ PseudoValue* greaterComparator(PseudoValue* a, PseudoValue* b) {
 
 
 void comparisonResolver(Runtime* r, ASTNode* self) {
-	self->args[0]->resolve(r);
+	self->args->at(0)->resolve(r);
 	PseudoValue* leftValue = r->acc;
-	self->args[1]->resolve(r);
+	self->args->at(1)->resolve(r);
 	PseudoValue* rightValue = r->acc;
 	try {
 		if(self->value == EQUAL) {
@@ -95,5 +95,5 @@ void comparisonResolver(Runtime* r, ASTNode* self) {
 }
 
 ASTNode* createComparison(PseudoValue* op, ASTNode* left, ASTNode* right) {
-	return new ASTNode{op, &comparisonResolver, Instructions{ left, right }};
+	return new ASTNode{op, &comparisonResolver, new Instructions{ left, right }};
 }
