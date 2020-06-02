@@ -15,7 +15,13 @@ void functionDeclarationResolver(Runtime* r, ASTNode* self) {
 
 void functionCallResolver(Runtime *r, ASTNode* self) {
 	r->newScope();
-	ASTNode* functionArgs = r->functionStack[self->value->value]->at(0);
+	Instructions* function = r->functionStack[self->value->value];
+	if (function == nullptr) {
+		char* err;
+		sprintf(err, "Function %s is not defined", self->value->value.c_str());
+		r->error(err);
+	}
+	ASTNode* functionArgs = function->at(0);
 	if (self->args->at(0)->args->size() != functionArgs->args->size()) {
 		r->error((char*)"Given args and declared args length does not match");
 	}
