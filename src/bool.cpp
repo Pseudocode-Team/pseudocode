@@ -84,13 +84,13 @@ void comparisonResolver(Runtime* r, ASTNode* self) {
 			r->acc = orComparator(rightValue, leftValue);
 		} else {
 			char* err;
-			sprintf(err, "Comparison operator %s not implemented", self->value->value);
+			sprintf(err, "Comparison operator %s not implemented", self->value->value.c_str());
 			r->error(err);
 		}
 	} catch (char const* err) {
 		r->error((char*)err);
-	} catch (char* err) {
-		r->error(err);
+	} catch (...) {
+		r->error("An error occured while comparing objects");
 	}
 }
 

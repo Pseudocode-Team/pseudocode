@@ -127,7 +127,7 @@ ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTN
 	return new ASTNode{nullptr, &conditionalStatementResolver, args};
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 	Runtime R;
 	Instructions program = {
 		createPrint(createSum(
