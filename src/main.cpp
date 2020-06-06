@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 #include "pdc.h"
 #include "runtime.h"
@@ -128,56 +129,66 @@ ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTN
 }
 
 int main(int argc, char *argv[]) {
+
+	// TODO: 
+	std::ofstream myfile;
+	myfile.open (argv[1]);
+
+
 	Runtime R;
-	Instructions program = {
-		createPrint(createSum(
-			createSum(createConstInt("1"), createConstInt("15")),
-			createConstFloat("2.1")
-		)),
-		createPrint(createConstInt("69")),
-		createAssignment("a", createConstInt("6")),
-		createPrint(createGetVariable("a")),
-		createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
-		createPrint(createGetVariable("a")),
-		createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
-		createConditionalStatement(
-			createComparison(EQUAL, createConstString("aaa"), createConstString("aaa")),
-			createInstructionBlock(new Instructions{
-				createPrint(createConstString("TRUE")),
-			}),
-			createInstructionBlock(new Instructions{
-				createPrint(createConstString("FALSE")),
-			})
-		),
-		createForLoop(
-			createAssignment("b", createConstInt("0")),
-			createComparison(LESS, createGetVariable("b"), createConstInt("10")),
-			createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
-			createInstructionBlock(new Instructions{
-				createPrint(createGetVariable("b"))
-			})
-		),
-		createFunctionDeclaration(
-			"add",
-			new ASTNode{nullptr, nullptr, new Instructions{
-				new ASTNode{new PseudoValue{"a", VarName}, nullptr, EMPTY_ARGS},
-				new ASTNode{new PseudoValue{"b", VarName}, nullptr, EMPTY_ARGS},
-			}},
-			createInstructionBlock(new Instructions{
-				createPrint(createConstString("Funkcja test")),
-				createReturn(createSum(
-					createGetVariable("a"),
-					createGetVariable("b")
-				))
-			})
-		),
-		createPrint(createFunctionCall("add", new ASTNode{nullptr, nullptr, new Instructions{
-			createConstInt("2"),
-			createConstInt("3")
-		}})),
-	};
+	Instructions program = {};
 	for (auto instruction : program) {
 		instruction->resolve(&R);
 	}
+
+	myfile.close();
 	return 0;
 }
+
+	// Instructions program = {
+	// 	createPrint(createSum(
+	// 		createSum(createConstInt("1"), createConstInt("15")),
+	// 		createConstFloat("2.1")
+	// 	)),
+	// 	createPrint(createConstInt("69")),
+	// 	createAssignment("a", createConstInt("6")),
+	// 	createPrint(createGetVariable("a")),
+	// 	createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
+	// 	createPrint(createGetVariable("a")),
+	// 	createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
+	// 	createConditionalStatement(
+	// 		createComparison(EQUAL, createConstString("aaa"), createConstString("aaa")),
+	// 		createInstructionBlock(new Instructions{
+	// 			createPrint(createConstString("TRUE")),
+	// 		}),
+	// 		createInstructionBlock(new Instructions{
+	// 			createPrint(createConstString("FALSE")),
+	// 		})
+	// 	),
+	// 	createForLoop(
+	// 		createAssignment("b", createConstInt("0")),
+	// 		createComparison(LESS, createGetVariable("b"), createConstInt("10")),
+	// 		createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
+	// 		createInstructionBlock(new Instructions{
+	// 			createPrint(createGetVariable("b"))
+	// 		})
+	// 	),
+	// 	createFunctionDeclaration(
+	// 		"add",
+	// 		new ASTNode{nullptr, nullptr, new Instructions{
+	// 			new ASTNode{new PseudoValue{"a", VarName}, nullptr, EMPTY_ARGS},
+	// 			new ASTNode{new PseudoValue{"b", VarName}, nullptr, EMPTY_ARGS},
+	// 		}},
+	// 		createInstructionBlock(new Instructions{
+	// 			createPrint(createConstString("Funkcja test")),
+	// 			createReturn(createSum(
+	// 				createGetVariable("a"),
+	// 				createGetVariable("b")
+	// 			))
+	// 		})
+	// 	),
+	// 	createPrint(createFunctionCall("add", new ASTNode{nullptr, nullptr, new Instructions{
+	// 		createConstInt("2"),
+	// 		createConstInt("3")
+	// 	}})),
+	// };
