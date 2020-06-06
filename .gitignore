@@ -31,3 +31,6 @@
 *.out
 *.app
 pdc
+
+# Vs code
+.vscode
