@@ -1,0 +1,16 @@
+write "String"
+write "String2" + "String3"
+write "String4" + "String5" + "String6"
+write 123
+write 123 + 45
+write 123 + 45 + 6
+write 1.0
+write 1.0 + 2.11
+write 11 + 2.11
+write 32.11 + 21
+ara := 2
+write ara
+write ara + 2
+text := "Hi, sup? "
+write text
+write text + " - Nothing"
