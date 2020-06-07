@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "pdc.h"
 #include "runtime.h"
@@ -10,133 +11,145 @@
 #include "bool.h"
 #include "loop.h"
 #include "functions.h"
+#include "variables.h"
+#include "sum.h"
+#include "condition.h"
+#include "print.h"
+#include "utils.h"
 
-PseudoValue* NIL = new PseudoValue{"nil", Nil};
+class SyntaxError {};
 
-void constResolver(Runtime* r, ASTNode* self) {
-	r->acc = self->value;
-}
+static SyntaxError kSyntaxError = SyntaxError();
 
-ASTNode* createConst(std::string rawValue, PseudoType dataType) {
-	PseudoValue* value = new PseudoValue(rawValue, dataType);
-	return new ASTNode{value, &constResolver, EMPTY_ARGS};
-}
-
-ASTNode* createConstInt(std::string rawValue) {
-	return createConst(rawValue, Int);
-}
-
-ASTNode* createConstFloat(std::string rawValue) {
-	return createConst(rawValue, Float);
-}
-
-ASTNode* createConstString(std::string rawValue) {
-	return createConst(rawValue, String);
-}
-
-ASTNode* createConstBool(std::string rawValue) {
-	return createConst(rawValue, Bool);
-}
-
-void sumResolver(Runtime* r, ASTNode* self) {
-	self->args->at(0)->resolve(r);
-	PseudoValue* leftValue = r->acc;
-	self->args->at(1)->resolve(r);
-	PseudoValue* rightValue = r->acc;
-	if (leftValue->type == rightValue->type) {
-		if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
-			r->acc = new PseudoValue(
-					std::to_string(
-						std::stof(leftValue->value) +
-						std::stof(rightValue->value)
-					),
-					leftValue->type
-				);
-		} else if (leftValue->type == String) {
-			r->acc = new PseudoValue(
-					leftValue->value + rightValue->value,
-					String
-				);
+ASTNode * getStringNode(int &index, std::vector<std::string> &line) {
+	char firstSignToEndSequence = line[index][0];
+	bool canEnd = false;
+	std::string result = "";
+	while(index < line.size()) {
+		int j = 0;
+		while(j < line[index].size()) {
+			if (line[index][j] != firstSignToEndSequence) {
+				result.push_back(line[index][j]);
+			} else if (canEnd) {
+				if (++j < line[index].size()) {
+					throw kSyntaxError;
+				} else if (index + 1 < line.size() && line[index + 1][0] != '+') {
+					throw kSyntaxError;
+				} else if (line[index + 1][0] == '+') {
+					index += 2;
+					return createSum(createConstString(result), getStringNode(index, line));
+				}
+				return createConstString(result);
+			} else {
+				canEnd = true;
+			}
+			j++;
 		}
-	} else if (isNumeric(leftValue->type) && isNumeric(rightValue->type)) {
-		r->acc = new PseudoValue(
-				std::to_string(
-					std::stof(leftValue->value) +
-					std::stof(rightValue->value)
-				),
-				Float
-			);
+		index++;
+	}
+	return createConstString(result);
+}
+
+ASTNode * getIntOrFloatNode(int &index, std::vector<std::string> &line) {
+	bool isInt = true;
+	std::string result = "";
+	int j = 0;
+	while(j < line[index].size()) {
+		if (line[index][j] == '.') {
+			if (isInt) isInt = false;
+			result.push_back(line[index][j]);
+		} else if (line[index][j] >= '0' && line[index][j] <= '9') {
+			result.push_back(line[index][j]);
+		} else {
+			throw kSyntaxError;
+		}
+		j++;
+	}
+	if (index + 1 >= line.size()) {
+		return isInt ? createConstInt(result) : createConstFloat(result);
+	} else if (line[index + 1] == "+") {
+		index += 2;
+		return createSum(isInt ? createConstInt(result) : createConstFloat(result), getIntOrFloatNode(index, line));
 	} else {
-		char* err;
-		sprintf(err, "Cannot add %s to %s", PSEUDO_TYPES[leftValue->type], PSEUDO_TYPES[rightValue->type]);
-		r->error(err);
+		throw kSyntaxError;
 	}
 }
 
-void printResolver(Runtime* r, ASTNode* self) {
-	self->args->at(0)->resolve(r);
-	std::string printingValue = r->acc->value;
-	std::cout << printingValue << std::endl;
-}
+ASTNode * getVariable(int &index, std::vector<std::string> &line);
 
-void assignmentResolver(Runtime* r, ASTNode* self) {
-	std::string varName = self->value->value;
-	self->args->at(0)->resolve(r);
-	r->currentScope->setVar(varName, r->acc);
-}
-
-void variableResolver(Runtime* r, ASTNode* self) {
-	std::string varName = self->value->value;
-	r->acc = r->currentScope->getVar(varName);
-}
-
-void conditionalStatementResolver(Runtime* r, ASTNode* self) {
-	// Evaluate condition
-	self->args->at(0)->resolve(r);
-	if(mapBool(r->acc)) {
-		// Run TRUE block
-		self->args->at(1)->resolve(r);
+ASTNode * getValue(int &index, std::vector<std::string> &line) {
+	if (line[index][0] == '"' || line[index][0] == "'"[0]) {
+		return getStringNode(index, line);
+	} else if (line[index][0] >= '0' && line[index][0] <= '9') {
+		return getIntOrFloatNode(index, line);
 	} else {
-		// Run FALSE block
-		self->args->at(2)->resolve(r);
+		return getVariable(index, line);
+	}	
+}
+
+ASTNode * getVariable(int &index, std::vector<std::string> &line) {
+	ASTNode * node = createGetVariable(line[index]);
+	if (index + 1 >= line.size()) {
+		return node;
+	} else if (line[index + 1] == "+") {
+		index += 1;
+		return createSum(node, getValue(index, line));
+	} else {
+		throw kSyntaxError;
 	}
-}
-
-ASTNode* createSum(ASTNode* a, ASTNode* b) {
-	Instructions* args = new Instructions{ a, b };
-	return new ASTNode{nullptr, &sumResolver, args};
-}
-
-ASTNode* createPrint(ASTNode* arg) {
-	Instructions* args = new Instructions{ arg };
-	return new ASTNode{nullptr, &printResolver, args};
-}
-
-ASTNode* createAssignment(std::string rawVarName, ASTNode* value) {
-	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
-	Instructions* args = new Instructions{ value };
-	return new ASTNode{varName, &assignmentResolver, args};
-}
-
-ASTNode* createGetVariable(std::string rawVarName) {
-	PseudoValue* varName = new PseudoValue( rawVarName, VarName );
-	return new ASTNode{varName, &variableResolver, EMPTY_ARGS};
-}
-
-ASTNode* createConditionalStatement(ASTNode* condition, ASTNode* trueBlock, ASTNode* falseBlock) {
-	Instructions* args = new Instructions{ condition, trueBlock, falseBlock };
-	return new ASTNode{nullptr, &conditionalStatementResolver, args};
 }
 
 int main(int argc, char *argv[]) {
+	if (argc <= 1) {
+		std::cout << "No arguments has been provided" << std::endl;
+		return 1;
+	}
 
-	// TODO: 
-	std::ofstream myfile;
-	myfile.open (argv[1]);
-
+	std::ifstream myfile;
+	myfile.open(argv[1]);
+	if (!myfile.is_open()) {
+		std::cout << "Unable to open " << argv[1] << std::endl;
+		return 1;
+	}	
 
 	Runtime R;
-	Instructions program = {};
+	Instructions program =  {}; 
+
+	std::string line;
+	while (std::getline(myfile, line)) {
+		std::cout << "New line: " <<  line << std::endl;
+	 	std::vector<std::string> splitted;
+		split<std::vector<std::string>>(line, splitted);
+
+ 		int i = 0;
+		while(i < splitted.size()) {
+			// Comments implemented only for testing purposes
+			if (splitted[i] == "#")
+				break;
+
+			if (splitted[i] == "write") {
+				if (++i >= splitted.size()) {
+					throw kSyntaxError;
+				} 
+
+				ASTNode * node = getValue(i, splitted);
+				program.push_back(createPrint(node));
+			} else if (i + 1 < splitted.size() && splitted[i + 1] == ":="){
+				ASTNode * node;
+				std::string varName = splitted[i];
+				i += 2;
+				if (i >= splitted.size()) {
+					throw kSyntaxError;
+				} else {
+					node = getValue(i, splitted);
+				}
+
+				program.push_back(createAssignment(varName, node));
+			}
+			i++;
+		}
+	}
+
 	for (auto instruction : program) {
 		instruction->resolve(&R);
 	}
@@ -144,51 +157,3 @@ int main(int argc, char *argv[]) {
 	myfile.close();
 	return 0;
 }
-
-	// Instructions program = {
-	// 	createPrint(createSum(
-	// 		createSum(createConstInt("1"), createConstInt("15")),
-	// 		createConstFloat("2.1")
-	// 	)),
-	// 	createPrint(createConstInt("69")),
-	// 	createAssignment("a", createConstInt("6")),
-	// 	createPrint(createGetVariable("a")),
-	// 	createAssignment("a", createSum(createGetVariable("a"), createConstInt("1"))),
-	// 	createPrint(createGetVariable("a")),
-	// 	createPrint(createComparison(EQUAL, createConstString("10"), createConstInt("10"))),
-	// 	createConditionalStatement(
-	// 		createComparison(EQUAL, createConstString("aaa"), createConstString("aaa")),
-	// 		createInstructionBlock(new Instructions{
-	// 			createPrint(createConstString("TRUE")),
-	// 		}),
-	// 		createInstructionBlock(new Instructions{
-	// 			createPrint(createConstString("FALSE")),
-	// 		})
-	// 	),
-	// 	createForLoop(
-	// 		createAssignment("b", createConstInt("0")),
-	// 		createComparison(LESS, createGetVariable("b"), createConstInt("10")),
-	// 		createAssignment("b", createSum(createGetVariable("b"), createConstInt("1"))),
-	// 		createInstructionBlock(new Instructions{
-	// 			createPrint(createGetVariable("b"))
-	// 		})
-	// 	),
-	// 	createFunctionDeclaration(
-	// 		"add",
-	// 		new ASTNode{nullptr, nullptr, new Instructions{
-	// 			new ASTNode{new PseudoValue{"a", VarName}, nullptr, EMPTY_ARGS},
-	// 			new ASTNode{new PseudoValue{"b", VarName}, nullptr, EMPTY_ARGS},
-	// 		}},
-	// 		createInstructionBlock(new Instructions{
-	// 			createPrint(createConstString("Funkcja test")),
-	// 			createReturn(createSum(
-	// 				createGetVariable("a"),
-	// 				createGetVariable("b")
-	// 			))
-	// 		})
-	// 	),
-	// 	createPrint(createFunctionCall("add", new ASTNode{nullptr, nullptr, new Instructions{
-	// 		createConstInt("2"),
-	// 		createConstInt("3")
-	// 	}})),
-	// };
