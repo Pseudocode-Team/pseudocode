@@ -14,3 +14,5 @@ write ara + 2
 text := "Hi, sup? "
 write text
 write text + " - Nothing"
+write 5 - 3
+write ara - 1

@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include "utils.h"
 #include "print.h"
-#include "sum.h"
+#include "operators.h"
 #include "variables.h"
 
 Lexer::Lexer(std::istream &stream) {
@@ -59,7 +59,7 @@ ASTNode * Lexer::getStringNode() {
                     throw new SyntaxError();
                 } else if (line[index + 1][0] == '+') {
                     index += 2;
-                    return createSum(createConstString(result), getStringNode());
+                    return createSum(createConstString(result), getValue());
                 }
                 return createConstString(result);
             } else {
@@ -72,7 +72,7 @@ ASTNode * Lexer::getStringNode() {
     return createConstString(result);
 }
 
-ASTNode * Lexer::getIntOrFloatNode() {
+ASTNode * Lexer::getNumericNode() {
     bool isInt = true;
     std::string result = "";
     int j = 0;
@@ -91,7 +91,10 @@ ASTNode * Lexer::getIntOrFloatNode() {
         return isInt ? createConstInt(result) : createConstFloat(result);
     } else if (line[index + 1] == "+") {
         index += 2;
-        return createSum(isInt ? createConstInt(result) : createConstFloat(result), getIntOrFloatNode());
+        return createSum(isInt ? createConstInt(result) : createConstFloat(result), getNumericNode());
+    } else if (line[index + 1] == "-") {
+        index += 2;
+        return createSubstraction(isInt ? createConstInt(result) : createConstFloat(result), getNumericNode());
     } else {
         throw new SyntaxError();
     }
@@ -101,7 +104,7 @@ ASTNode * Lexer::getValue() {
     if (line[index][0] == '"' || line[index][0] == "'"[0]) {
         return getStringNode();
     } else if (line[index][0] >= '0' && line[index][0] <= '9') {
-        return getIntOrFloatNode();
+        return getNumericNode();
     } else {
         return getVariable();
     }	
@@ -114,6 +117,9 @@ ASTNode * Lexer::getVariable() {
     } else if (line[index + 1] == "+") {
         index += 2;
         return createSum(node, getValue());
+    } else if (line[index + 1] == "-") {
+        index += 2;
+        return createSubstraction(node, getValue());
     } else {
         throw new SyntaxError();
     }
