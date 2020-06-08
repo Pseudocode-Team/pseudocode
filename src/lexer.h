@@ -20,7 +20,7 @@ public:
 private: 
 	ASTNode * getStringNode();
 
-	ASTNode * getIntOrFloatNode();
+	ASTNode * getNumericNode();
 
 	ASTNode * getValue();
 
